@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Try-On - AI Dress Preview Studio</title>
+  <link rel="stylesheet" href="index.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <script type="importmap">
+    {
+      "imports": {
+        "@google/genai": "https://esm.sh/@google/genai@^0.14.0"
+      }
+    }
+  </script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+  
+  <!-- Login Page -->
+  <div id="login-page" class="page-container hidden">
+    <div class="auth-card">
+      <div class="user-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd" />
+        </svg>
+      </div>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="username">Email / Username</label>
+          <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <div class="form-options">
+           <label class="checkbox-container">Remember me
+            <input type="checkbox" id="remember-me">
+            <span class="checkmark"></span>
+          </label>
+          <label class="checkbox-container">Login as Admin
+            <input type="checkbox" id="admin-login-checkbox">
+            <span class="checkmark"></span>
+          </label>
+        </div>
+        <p id="login-error" class="error-message"></p>
+        <button type="submit" class="auth-button">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main App Wrapper -->
+  <div id="app-wrapper" class="hidden">
+    <header id="app-header">
+      <div class="header-content">
+        <div class="header-left">
+          <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 6.75A.75.75 0 013.75 6h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 6.75zM3 12a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 12zm0 5.25a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
+          </svg>
+          <h1 class="header-title">Dashboard</h1>
+        </div>
+        <div class="header-right">
+          <span class="brand-name">Usman Studio•</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation Drawer -->
+    <div id="nav-overlay" class="nav-overlay hidden"></div>
+    <nav id="nav-drawer" class="nav-drawer">
+        <div class="nav-profile-header">
+            <div class="nav-profile-info">
+                <div class="nav-avatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <p id="nav-username" class="nav-username"></p>
+                <p id="nav-user-email" class="nav-user-email"></p>
+            </div>
+            <button id="nav-close-btn" class="nav-icon-btn" aria-label="Close menu">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.69-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.06 1.06l8.69-8.69z" />
+                  <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
+                </svg>
+            </button>
+        </div>
+        <ul class="nav-menu">
+            <li>
+                <a href="#app" class="nav-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.69-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.06 1.06l8.69-8.69z" />
+                        <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="#account" class="nav-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Account</span>
+                </a>
+            </li>
+        </ul>
+        <button id="logout-btn" class="nav-logout-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 006 5.25v13.5a1.5 1.5 0 001.5 1.5h6a1.5 1.5 0 001.5-1.5V15a.75.75 0 011.5 0v3.75a3 3 0 01-3 3h-6a3 3 0 01-3-3V5.25a3 3 0 013-3h6a3 3 0 013 3V9A.75.75 0 0115 9V5.25a1.5 1.5 0 00-1.5-1.5h-6zm10.72 4.72a.75.75 0 011.06 0l3 3a.75.75 0 010 1.06l-3 3a.75.75 0 11-1.06-1.06l1.72-1.72H9a.75.75 0 010-1.5h10.94l-1.72-1.72a.75.75 0 010-1.06z" clip-rule="evenodd" />
+            </svg>
+            <span>Sign Out</span>
+        </button>
+    </nav>
+
+    <!-- Main App Content -->
+    <main id="app-main">
+      <div class="app-content">
+        <div class="controls-column">
+          <div class="app-mode-selector">
+            <button id="virtual-try-on-mode-btn" class="app-mode-btn active" aria-pressed="true">Virtual Try-On</button>
+            <button id="model-gen-mode-btn" class="app-mode-btn" aria-pressed="false">Model Generation</button>
+          </div>
+          
+          <div id="virtual-try-on-controls">
+            <div class="mode-selector">
+              <button id="three-piece-btn" class="mode-btn active" aria-pressed="true">3 Piece</button>
+              <button id="two-piece-btn" class="mode-btn" aria-pressed="false">2 Piece</button>
+            </div>
+            <section class="upload-section card">
+              <h2 class="section-title">Upload Dress Images</h2>
+              <div class="upload-grid">
+                <div class="file-uploader" id="kameez-uploader-container">
+                  <label for="kameez-upload" class="image-preview-container">
+                    <img id="kameez-preview" src="#" alt="Kameez preview" class="image-preview">
+                    <div class="preview-placeholder">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.47 1.72a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72V10.5a.75.75 0 01-1.5 0V4.06L9.53 5.78a.75.75 0 01-1.06-1.06l3-3zM11.25 13.5V21.75a.75.75 0 001.5 0V13.5a.75.75 0 00-1.5 0z" /><path d="M3.75 12a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5H3.75z" /></svg>
+                      <span>Kameez</span>
+                    </div>
+                  </label>
+                  <input type="file" id="kameez-upload" accept="image/*" aria-label="Upload Kameez">
+                </div>
+                <div class="file-uploader" id="dupatta-uploader">
+                  <label for="dupatta-upload" class="image-preview-container">
+                    <img id="dupatta-preview" src="#" alt="Dupatta preview" class="image-preview">
+                    <div class="preview-placeholder">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.47 1.72a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72V10.5a.75.75 0 01-1.5 0V4.06L9.53 5.78a.75.75 0 01-1.06-1.06l3-3zM11.25 13.5V21.75a.75.75 0 001.5 0V13.5a.75.75 0 00-1.5 0z" /><path d="M3.75 12a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5H3.75z" /></svg>
+                      <span>Dupatta</span>
+                    </div>
+                  </label>
+                  <input type="file" id="dupatta-upload" accept="image/*" aria-label="Upload Dupatta">
+                </div>
+                <div class="file-uploader" id="trouser-uploader-container">
+                   <label for="trouser-upload" class="image-preview-container">
+                    <img id="trouser-preview" src="#" alt="Trouser preview" class="image-preview">
+                     <div class="preview-placeholder">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.47 1.72a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72V10.5a.75.75 0 01-1.5 0V4.06L9.53 5.78a.75.75 0 01-1.06-1.06l3-3zM11.25 13.5V21.75a.75.75 0 001.5 0V13.5a.75.75 0 00-1.5 0z" /><path d="M3.75 12a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5H3.75z" /></svg>
+                      <span>Trouser</span>
+                    </div>
+                  </label>
+                  <input type="file" id="trouser-upload" accept="image/*" aria-label="Upload Trouser (Optional)">
+                </div>
+                <div class="file-uploader" id="model-uploader-container">
+                  <label for="model-upload" class="image-preview-container">
+                    <img id="model-preview" src="#" alt="Model preview" class="image-preview">
+                    <div class="preview-placeholder">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.47 1.72a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72V10.5a.75.75 0 01-1.5 0V4.06L9.53 5.78a.75.75 0 01-1.06-1.06l3-3zM11.25 13.5V21.75a.75.75 0 001.5 0V13.5a.75.75 0 00-1.5 0z" /><path d="M3.75 12a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5H3.75z" /></svg>
+                      <span>Model <small>(Optional)</small></span>
+                    </div>
+                     <button id="model-clear-btn" class="clear-btn hidden" aria-label="Clear model image">&times;</button>
+                  </label>
+                  <input type="file" id="model-upload" accept="image/*" aria-label="Upload Model Image (Optional)">
+                </div>
+              </div>
+            </section>
+          </div>
+          
+          <section id="model-generation-controls" class="card hidden">
+            <h2 class="section-title">Generation Settings</h2>
+            <div class="prompt-input">
+              <label for="dress-color">Dress Color</label>
+              <div class="color-picker-wrapper">
+                 <input type="color" id="dress-color" value="#a855f7">
+                 <span id="dress-color-value">#a855f7</span>
+              </div>
+            </div>
+          </section>
+          
+          <section class="prompt-section card">
+            <div class="section-header">
+              <h2 class="section-title">AI Prompts</h2>
+              <button id="surprise-me-btn" type="button" aria-label="Generate random prompts">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9.315 7.584C12.195 3.883 16.695 1.5 21.75 1.5a.75.75 0 01.75.75c0 5.056-2.383 9.555-6.084 12.436A6.75 6.75 0 019.75 22.5a.75.75 0 01-.75-.75v-7.19c-2.66 1.684-4.701 4.234-6.022 7.238a.75.75 0 01-1.379-.595A18.678 18.678 0 011.5 12c0-5.462 2.513-10.273 6.491-13.431a.75.75 0 011.324.614 6.72 6.72 0 01.001 6.401zM12 12c0-.64.034-1.27.1-1.897a.75.75 0 011.493-.148c.054.542.082 1.09.082 1.645a4.5 4.5 0 11-9 0 4.5 4.5 0 014.5-4.5c.361 0 .714.043 1.058.123a.75.75 0 01.188 1.48A3.001 3.001 0 0012 9a3 3 0 00-3 3z" clip-rule="evenodd" /></svg>
+                <span>Surprise Me</span>
+              </button>
+            </div>
+            <div class="prompt-input">
+              <label for="model-prompt">Model Prompt</label>
+              <textarea id="model-prompt" rows="3" placeholder="e.g., Pakistani female model, elegant pose, soft lighting"></textarea>
+            </div>
+            <div class="prompt-input">
+              <label for="background-prompt">Background Prompt</label>
+              <textarea id="background-prompt" rows="3" placeholder="e.g., Outdoor garden background, sunny day, light breeze"></textarea>
+            </div>
+             <div class="prompt-input">
+                <label>Aspect Ratio</label>
+                <div class="aspect-ratio-selector">
+                  <button type="button" class="ratio-btn active" data-ratio="16:9" aria-pressed="true">16:9</button>
+                  <button type="button" class="ratio-btn" data-ratio="9:16" aria-pressed="false">9:16</button>
+                  <button type="button" class="ratio-btn" data-ratio="4:3" aria-pressed="false">4:3</button>
+                  <button type="button" class="ratio-btn" data-ratio="3:4" aria-pressed="false">3:4</button>
+                  <button type="button" class="ratio-btn" data-ratio="1:1" aria-pressed="false">1:1</button>
+                </div>
+              </div>
+          </section>
+          <button id="generate-btn" disabled>
+            <svg class="sparkle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.75.75V9a.75.75 0 01-1.5 0V5.25A.75.75 0 019 4.5zm6.375 0a.75.75 0 01.75.75V9a.75.75 0 01-1.5 0V5.25a.75.75 0 01.75-.75zM9 15a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V15.75A.75.75 0 019 15zm6.375 0a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V15.75a.75.75 0 01.75-.75zM4.125 9a.75.75 0 01.75-.75h3.75a.75.75 0 010 1.5H4.875a.75.75 0 01-.75-.75zm15 0a.75.75 0 01.75-.75h3.75a.75.75 0 010 1.5h-3.75a.75.75 0 01-.75-.75zM4.125 15a.75.75 0 01.75-.75h3.75a.75.75 0 010 1.5H4.875a.75.75 0 01-.75-.75zm15 0a.75.75 0 01.75-.75h3.75a.75.75 0 010 1.5h-3.75a.75.75 0 01-.75-.75z" clip-rule="evenodd" /></svg>
+            Generate Model
+          </button>
+        </div>
+        <section class="result-column" aria-live="polite" aria-atomic="true">
+          <div id="result-container" class="result-container card">
+            <div id="result-placeholder" class="result-placeholder">
+              <p>Your styled outfit will appear here.</p>
+            </div>
+            <div id="result-grid" class="result-grid hidden"></div>
+            <img id="result-image" src="#" alt="Generated virtual try-on image" class="result-image">
+            <div id="loader" class="loader" role="status">
+               <div class="spinner"></div>
+               <p>Styling your outfit...<br>This can take a moment.</p>
+            </div>
+          </div>
+          <button id="download-btn" class="hidden" aria-label="Download generated image">Download Image</button>
+        </section>
+      </div>
+    </main>
+
+    <!-- Account Page -->
+    <div id="account-page" class="page-container hidden">
+        <div class="info-card">
+            <h2>Account Details</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Username</span>
+                    <span id="account-username" class="info-value"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Member Since</span>
+                    <span id="account-created" class="info-value"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+    <!-- Admin Page -->
+    <div id="admin-page" class="page-container hidden">
+        <div class="auth-card admin-panel">
+            <div class="auth-header">
+                <h1>Admin Panel</h1>
+                <p>Create and manage user accounts</p>
+            </div>
+
+            <form id="create-user-form" class="admin-actions">
+              <div class="form-group">
+                <label for="new-user-email">Email / Username</label>
+                <input type="email" id="new-user-email" placeholder="user@example.com" required>
+              </div>
+              <div class="form-group">
+                <label for="new-user-password">Password</label>
+                <input type="password" id="new-user-password" placeholder="Min. 8 characters" required minlength="8">
+              </div>
+              <button id="create-user-btn" type="submit" class="auth-button" disabled>Create ID</button>
+              <p id="admin-message" class="message"></p>
+            </form>
+
+            <div class="user-table-container">
+              <div class="user-table-controls">
+                <h2>Registered Users (<span id="user-count">0</span>)</h2>
+                <div class="search-wrapper">
+                  <input type="search" id="user-search-input" placeholder="Search by email...">
+                </div>
+              </div>
+              <table id="user-list-table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Password</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- User rows will be injected by script -->
+                </tbody>
+              </table>
+            </div>
+        </div>
+    </div>
+  </div>
+
+
+  <script type="module" src="index.tsx"></script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
